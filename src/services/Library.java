@@ -2,11 +2,11 @@ package services;
 
 import DAO.LibraryBookDAO;
 import DAO.ReaderDAO;
+import comparators.BookYearComparator;
 import models.LibraryBook;
 import models.Reader;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class Library {
                 libraryBook.increaseAvailableCopies();
                 libraryBookDAO.updateBook(existLibraryBook);
                 if(libraryBook.getCopyNumber() <= existLibraryBook.getCopyNumber()){
-                    libraryBook.setCopyNumber(existLibraryBook.getId() + 1);
+                    libraryBook.setCopyNumber(existLibraryBook.getCopyNumber() + 1);
                 }
             }
         }
@@ -63,8 +63,8 @@ public class Library {
     }
 
     // Метод для сортировки книг в библиотеке по заданному критерию
-    public void sortBooks(Comparator<LibraryBook> comparator) {
-        Collections.sort(libraryBookDAO.getAllBooks(), comparator);
+    public List<LibraryBook> sortBooks() {
+        return getLibraryBooks().stream().sorted(new BookYearComparator()).toList();
     }
 
     // Метод для поиска книги в библиотеке
@@ -81,7 +81,7 @@ public class Library {
     // наличие свободных экземпляров заданной книги.
     public void listAvailableCopiesInformationByTitle(String title) {
         LibraryBook libraryBook = findBook(title);
-        System.out.println(libraryBook.toString() +
+        System.out.println(libraryBook.getTitle() +
                 ", Copies Available: " + libraryBook.getAvailableCopies());
 
     }
@@ -126,7 +126,7 @@ public class Library {
         }
         System.out.println("Book not available for borrowing: " + title);
     }
-//TODO: make method to anaible readers return their books
+//TODO: make method to enable readers return their books
 //    public void returnBook(Reader reader, String title) {
 //        for (LibraryBook libraryBook : libraryBooks) {
 //            if (libraryBook.getTitle().equals(title)) {

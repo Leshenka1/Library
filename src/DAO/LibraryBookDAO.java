@@ -1,6 +1,8 @@
 package DAO;
 
 import models.LibraryBook;
+import services.ConnectionPool;
+import services.LoggerManager;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,8 +16,10 @@ public class LibraryBookDAO {
     private static final String DELETE_QUERY = "DELETE FROM LibraryBooks WHERE bookID = ?";
 
     public void addBook(LibraryBook book) {
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db", "postgres", "pass");
-             PreparedStatement statement = connection.prepareStatement(INSERT_QUERY)) {
+        Connection connection = null;
+        try {
+            connection = ConnectionPool.getConnection();
+            PreparedStatement statement = connection.prepareStatement(INSERT_QUERY);
             statement.setInt(1, book.getId());
             statement.setString(2, book.getTitle());
             statement.setString(3, book.getAuthor());
@@ -24,16 +28,20 @@ public class LibraryBookDAO {
             statement.setInt(6, book.getReaderId());
             statement.setInt(7, book.getYear());
             statement.executeUpdate();
+            ConnectionPool.releaseConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LoggerManager.logException(e);
+            ConnectionPool.releaseConnection(connection);
         }
     }
 
     public List<LibraryBook> getAllBooks() {
         List<LibraryBook> books = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db", "postgres", "pass");
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(SELECT_ALL_QUERY)) {
+        Connection connection = null;
+        try {
+            connection = ConnectionPool.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(SELECT_ALL_QUERY);
             while (resultSet.next()) {
                 int bookID = resultSet.getInt("bookID");
                 String title = resultSet.getString("title");
@@ -49,41 +57,48 @@ public class LibraryBookDAO {
                 book.setReaderId(readerID);
                 books.add(book);
             }
+            ConnectionPool.releaseConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LoggerManager.logException(e);
+            ConnectionPool.releaseConnection(connection);
         }
         return books;
     }
 
     public LibraryBook getBookById(int bookID) {
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db", "postgres", "pass");
-             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY)) {
+        LibraryBook book = null;
+        Connection connection = null;
+        try {
+            connection = ConnectionPool.getConnection();
+            PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_QUERY);
             statement.setInt(1, bookID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    String title = resultSet.getString("title");
-                    String author = resultSet.getString("author");
-                    int year = resultSet.getInt("year");
-                    int copyNumber = resultSet.getInt("copyNumber");
-                    int availableCopies = resultSet.getInt("availableCopies");
-                    int readerID = resultSet.getInt("readerID");
-                    LibraryBook book = new LibraryBook.Builder(title, author, year, bookID)
-                            .build();
-                    book.setCopyNumber(copyNumber);
-                    book.setAvailableCopies(availableCopies);
-                    book.setReaderId(readerID);
-                    return book;
-                }
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String title = resultSet.getString("title");
+                String author = resultSet.getString("author");
+                int year = resultSet.getInt("year");
+                int copyNumber = resultSet.getInt("copyNumber");
+                int availableCopies = resultSet.getInt("availableCopies");
+                int readerID = resultSet.getInt("readerID");
+                book = new LibraryBook.Builder(title, author, year, bookID)
+                        .build();
+                book.setCopyNumber(copyNumber);
+                book.setAvailableCopies(availableCopies);
+                book.setReaderId(readerID);
             }
+            ConnectionPool.releaseConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LoggerManager.logException(e);
+            ConnectionPool.releaseConnection(connection);
         }
-        return null;
+        return book;
     }
 
     public void updateBook(LibraryBook book) {
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db", "postgres", "pass");
-             PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY)) {
+        Connection connection = null;
+        try {
+            connection = ConnectionPool.getConnection();
+            PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY);
             statement.setString(1, book.getTitle());
             statement.setString(2, book.getAuthor());
             statement.setInt(3, book.getCopyNumber());
@@ -92,18 +107,24 @@ public class LibraryBookDAO {
             statement.setInt(6, book.getYear());
             statement.setInt(7, book.getId());
             statement.executeUpdate();
+            ConnectionPool.releaseConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LoggerManager.logException(e);
+            ConnectionPool.releaseConnection(connection);
         }
     }
 
     public void deleteBook(int bookID) {
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db", "postgres", "pass");
-             PreparedStatement statement = connection.prepareStatement(DELETE_QUERY)) {
+        Connection connection = null;
+        try {
+            connection = ConnectionPool.getConnection();
+            PreparedStatement statement = connection.prepareStatement(DELETE_QUERY);
             statement.setInt(1, bookID);
             statement.executeUpdate();
+            ConnectionPool.releaseConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LoggerManager.logException(e);
+            ConnectionPool.releaseConnection(connection);
         }
     }
 }

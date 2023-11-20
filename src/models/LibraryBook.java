@@ -67,4 +67,11 @@ public class LibraryBook extends Book {
             return new LibraryBook(this);
         }
     }
+
+    // Переопределение метода toString() для вывода информации о книге
+    @Override
+    public String toString() {
+        return "Title: " + this.getTitle() + ", Author: " + this.getAuthor() + ", Year: " + this.getYear() + ", Id: " + this.getId() + ", available copies: " + this.getAvailableCopies() + ", copy number: " + this.getCopyNumber() + ", reader ID: " + this.getReaderId();
+    }
+
 }
